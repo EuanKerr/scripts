@@ -121,7 +121,9 @@ find /home /root -type f \( -name ".bash_history" -o -name ".zsh_history" -o -na
 history -c
 
 log "INFO" "Clearing files in /var/log/..."
-sudo find /var/log/ -type f -delete
+find /var/log/ -type f -delete
+journalctl --rotate
+journalctl --vacuum-time=1s
 
 # Delete this script before making filesystem RO
 log "INFO" "Deleting this script..."
