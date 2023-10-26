@@ -82,8 +82,8 @@ raspi-config nonint do_ssh 0
 log "INFO" "Disabling Serial..."
 raspi-config nonint do_i2c 1
 
-log "INFO" "Reducing GPU RAM..."
-raspi-config nonint do_memory_split 16
+# log "INFO" "Reducing GPU RAM..."
+# raspi-config nonint do_memory_split 16
 
 log "INFO" "Disabling VNC..."
 raspi-config nonint do_vnc 1
