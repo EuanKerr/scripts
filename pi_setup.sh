@@ -7,6 +7,11 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
+# Check if the OS is Debian GNU/Linux 12 (bookworm)
+if [[ $(lsb_release -d | awk '{print $2, $3, $4, $5}') != "Debian GNU/Linux 12 (bookworm)" ]]; then
+    log "ERROR" "This script is compatible with Debian GNU/Linux 12 (bookworm)."
+fi
+
 CALLBACK_DOMAIN="example.com"
 NEW_HOSTNAME="OfficeJet102"
 SSH_KEY_PATH="/root/.ssh/id_rsa"
@@ -58,6 +63,18 @@ if ! grep -q "$(cat "$SSH_KEY_PATH.pub")" "$AUTHORIZED_KEYS_PATH"; then
     cat "$SSH_KEY_PATH.pub" >>"$AUTHORIZED_KEYS_PATH"
 fi
 
+log "INFO" "Restricting root login to keys only"
+sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
+
+log "INFO" "Restricting SSH login to a root user..."
+echo "AllowUsers root" >> /etc/ssh/sshd_config
+
+log "INFO" "Restarting SSH service..."
+systemctl restart sshd.service
+
+log "INFO" "Disable the default pi user"
+usermod -L $(id -un 1000)
+
 log "INFO" "Updating package list and upgrading installed packages..."
 apt update
 apt upgrade -y
@@ -82,20 +99,18 @@ raspi-config nonint do_ssh 0
 log "INFO" "Disabling Serial..."
 raspi-config nonint do_i2c 1
 
-# log "INFO" "Reducing GPU RAM..."
-# raspi-config nonint do_memory_split 16
-
 log "INFO" "Disabling VNC..."
 raspi-config nonint do_vnc 1
 
 log "INFO" "Disabling serial..."
 raspi-config nonint do_serial 1
 
+log "INFO" "Disabling extra services, bluetooth, avahi, apt-daily..."
 systemctl disable --now bluetooth.service
-systemctl disable --now avahi-daemon.service
 systemctl disable --now avahi-daemon.socket
-systemctl disable --now apt-daily-upgrade.service
+systemctl disable --now avahi-daemon.service
 systemctl disable --now apt-daily-upgrade.timer
+systemctl disable --now apt-daily-upgrade.service
 
 # SSH tunnel callback
 cat <<EOF >/etc/systemd/system/ssh-cb@.service
@@ -116,9 +131,12 @@ EOF
 systemctl daemon-reload
 systemctl enable --now ssh-cb@22.service
 
+touch /root/.hushlogin
+
 log "INFO" "Clearing bash history..."
-find /home /root -type f \( -name ".bash_history" -o -name ".zsh_history" -o -name ".fish_history" \) -exec truncate -s 0 '{}' \;
 history -c
+# find /home /root -type f \( -name ".bash_history" -o -name ".zsh_history" -o -name ".fish_history" \) -exec truncate -s 0 '{}' \;
+find /home /root -type f \( -name ".bash_history" -o -name ".zsh_history" -o -name ".fish_history" \) -delete
 
 log "INFO" "Clearing files in /var/log/..."
 find /var/log/ -type f -delete
