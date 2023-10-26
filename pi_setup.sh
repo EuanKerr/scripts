@@ -153,5 +153,8 @@ raspi-config nonint do_overlayfs 0          # 0 is enable
 log "INFO" "Here is your private key:"
 cat "$SSH_KEY_PATH"
 
+log "INFO" "Here is your public key:"
+cat "$SSH_KEY_PATH.pub"
+
 log "INFO" "Rebooting the Raspberry Pi..."
 reboot
