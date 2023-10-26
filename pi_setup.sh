@@ -33,7 +33,7 @@ log() {
 
 # Remount partition so we can write /boot/config.txt files for raspi-config
 log "INFO" "Remounting partitons as RW..."
-mount -o remount,rw /boot
+mount -o remount,rw /boot/firmware
 mount -o remount,rw /
 
 # Modify /boot/cmdline.txt to set the new MAC address
