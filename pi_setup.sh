@@ -43,7 +43,7 @@ mount -o remount,rw /
 
 # Modify /boot/cmdline.txt to set the new MAC address
 if grep -q "force_mac_address=$NEW_MAC" /boot/config.txt; then
-    log "ERROR" "MAC address already set to $NEW_MAC in /boot/config.txt."
+    log "WARN" "MAC address already set to $NEW_MAC in /boot/config.txt."
 else
     log "INFO" "Setting MAC address to $NEW_MAC in /boot/config.txt..."
     echo "force_mac_address=$NEW_MAC" >>/boot/config.txt
@@ -126,6 +126,7 @@ ExecStart=/usr/bin/ssh -i "${SSH_KEY_PATH}" -NT -R *:0 -l user "${CALLBACK_DOMAI
 Restart=always
 RestartSec=10
 StartLimitInterval=0
+TimeoutStartSec=300
 
 [Install]
 WantedBy=multi-user.target
