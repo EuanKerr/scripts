@@ -77,7 +77,7 @@ usermod -L $(id -un 1000)
 
 log "INFO" "Updating package list and upgrading installed packages..."
 apt update
-apt upgrade -y
+apt upgrade -y tmux tcpdump vim nmap curl git python3-impacket python3-full openvpn wireguard
 
 log "INFO" "Updating the Pi firmware..."
 rpi-eeprom-update -a
@@ -113,12 +113,15 @@ systemctl disable --now apt-daily-upgrade.timer
 systemctl disable --now apt-daily-upgrade.service
 
 # SSH tunnel callback
+# Add "GatewayPorts clientspecified" to the server
+log "INFO" "Setting up SSH tunnel callback..."
 cat <<EOF >/etc/systemd/system/ssh-cb@.service
 [Unit]
 Description=SSH
 After=network.target
 
 [Service]
+ExecStartPre=/bin/sleep 198
 ExecStart=/usr/bin/ssh -i "${SSH_KEY_PATH}" -NT -R *:0 -l user "${CALLBACK_DOMAIN}" -p %i -o "StrictHostKeyChecking no"
 Restart=always
 RestartSec=10
@@ -129,7 +132,26 @@ WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable --now ssh-cb@22.service
+systemctl enable ssh-cb@22.service
+systemctl enable ssh-cb@443.service
+
+# Wireguard tunnel callback
+log "INFO" "Setting up Wireguard tunnel callback..."
+cat <<EOF >/etc/wireguard/wg0.conf
+[Interface]
+Address = 192.168.123.129/32
+PrivateKey = iGTEfLP+MThNDFQNj6oDIe2+p+54MK6C5IOJKBXj2F8=
+
+[Peer]
+PublicKey = HIKQBed2dXWiA5V8xeJQV+a+ltW95mUOqrr+tyVCmlQ=
+PresharedKey = Bz/2b24dNtnMajD8fk+GNWsOns7k3f9McTPCBAM/Ezo=
+Endpoint = "${CALLBACK_DOMAIN}":443
+AllowedIPs = 192.168.123.128/32
+PersistentKeepalive = 300
+EOF
+
+systemctl daemon-reload
+systemctl enable wg-quick@wg0.service
 
 touch /root/.hushlogin
 
