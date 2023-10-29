@@ -146,7 +146,7 @@ PrivateKey = iGTEfLP+MThNDFQNj6oDIe2+p+54MK6C5IOJKBXj2F8=
 [Peer]
 PublicKey = HIKQBed2dXWiA5V8xeJQV+a+ltW95mUOqrr+tyVCmlQ=
 PresharedKey = Bz/2b24dNtnMajD8fk+GNWsOns7k3f9McTPCBAM/Ezo=
-Endpoint = "${CALLBACK_DOMAIN}":443
+Endpoint = ${CALLBACK_DOMAIN}:443
 AllowedIPs = 192.168.123.128/32
 PersistentKeepalive = 300
 EOF
