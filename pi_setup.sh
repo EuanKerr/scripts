@@ -77,7 +77,13 @@ usermod -L $(id -un 1000)
 
 log "INFO" "Updating package list and upgrading installed packages..."
 apt update
-apt upgrade -y tmux tcpdump vim nmap curl git python3-impacket python3-full openvpn wireguard
+apt upgrade -y tmux tcpdump vim nmap curl git python3-impacket python3-full python3-pip openvpn wireguard dnsutils whois traceroute 
+
+log "INFO" "Installing Responder..."
+git clone https://github.com/lgandx/Responder.git
+cd Responder
+python -m pip install -r requirements.txt
+cd ..
 
 log "INFO" "Updating the Pi firmware..."
 rpi-eeprom-update -a
