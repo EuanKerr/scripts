@@ -1,1 +1,1 @@
-# redteam-scripts
+# scripts
