@@ -11,12 +11,12 @@ fi
 
 HASHFILE="${1}"
 TYPE="${2}"
-HASHCAT_BIN="/opt/tools/hashcat-beta/hashcat.bin"
+HASHCAT_BIN="/opt/tools/hashcat/hashcat.bin"
 WORDLIST="/data/wordlists/combined.LARGE.txt"
 PREVIOUSLY_CRACKED_WORDLIST="/data/wordlists/previously_cracked.txt"
 RULES="/opt/tools/hashcat-rules"
-TEMP_POTFILE="$(mktemp /tmp/hashcrack.XXXXXXXXXX)"
-TEMP_OUTFILE="$(mktemp /tmp/hashcrack.XXXXXXXXXX)"
+TEMP_POTFILE="$(mktemp /tmp/hashcrack.pot.XXXXXXXXXX)"
+TEMP_OUTFILE="$(mktemp /tmp/hashcrack.out.XXXXXXXXXX)"
 OUTPUT_FILE="/data/output/$(date -I)_$(basename ${HASHFILE}).cracked.txt"
 
 clean_up() {
@@ -51,6 +51,9 @@ function run_hashcat() {
 # Check against previously cracked hashes
 run_hashcat -a 0 "${HASHFILE}" "${PREVIOUSLY_CRACKED_WORDLIST}"
 
+# Check against previously cracked hashes and ruleset
+run_hashcat -a 0 --loopback -r "${RULES}/OneRuleToRuleThemStill.rule" "${HASHFILE}" "${PREVIOUSLY_CRACKED_WORDLIST}"
+
 # Check up to 7 characters, incremetally - upper, lower, digit, some special characters
 run_hashcat -a 3 -i -1 '?l?d?u!"£$%^&*()_+@#' "${HASHFILE}" ?1?1?1?1?1?1?1
 
@@ -65,5 +68,3 @@ run_hashcat -a 3 -1 '?l?d?u!"£$%^&*()_+@#' "${HASHFILE}" ?1?1?1?1?1?1?1?1
 
 # Check up to 12 characters - ALL - last ditch effort
 run_hashcat -a 3 -i "${HASHFILE}" ?a?a?a?a?a?a?a?a?a?a?a?a
-
-clean_up
