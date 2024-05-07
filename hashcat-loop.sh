@@ -17,7 +17,7 @@ PREVIOUSLY_CRACKED_WORDLIST="/data/wordlists/previously_cracked.txt"
 RULES="/opt/tools/hashcat-rules"
 TEMP_POTFILE="$(mktemp /tmp/hashcrack.pot.XXXXXXXXXX)"
 TEMP_OUTFILE="$(mktemp /tmp/hashcrack.out.XXXXXXXXXX)"
-OUTPUT_FILE="/data/output/$(date -I)_$(basename ${HASHFILE}).cracked.txt"
+OUTPUT_FILE="/data/output/$(date +%Y-%m-%dT%H%M%SZ)_$(basename ${HASHFILE}).cracked.txt"
 
 clean_up() {
     echo -e "\nCleaning up temp files...\n"
