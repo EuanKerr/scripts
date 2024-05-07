@@ -11,16 +11,21 @@ fi
 
 HASHFILE="${1}"
 TYPE="${2}"
-HASHCAT_BIN="/opt/tools/hashcat/hashcat.bin"
+HASHCAT_BIN="/opt/tools/hashcat-beta/hashcat.bin"
 WORDLIST="/data/wordlists/combined.LARGE.txt"
 PREVIOUSLY_CRACKED_WORDLIST="/data/wordlists/previously_cracked.txt"
-RULES="/opt/tools/hashcat/rules"
-TEMP_POTFILE="$(mktemp)"
+RULES="/opt/tools/hashcat-rules"
+TEMP_POTFILE="$(mktemp /tmp/hashcrack.XXXXXXXXXX)"
+TEMP_OUTFILE="$(mktemp /tmp/hashcrack.XXXXXXXXXX)"
 OUTPUT_FILE="/data/output/$(date -I)_$(basename ${HASHFILE}).cracked.txt"
 
 clean_up() {
+    echo -e "\nCleaning up temp files...\n"
     cat "${TEMP_POTFILE}" >> "${OUTPUT_FILE}"
+    cat "${TEMP_OUTFILE}" >> "${PREVIOUSLY_CRACKED_WORDLIST}"
     rm -f -- "${TEMP_POTFILE}"
+    rm -f -- "${TEMP_OUTFILE}"
+    echo -e "\nDone...\n"
 }
 
 trap clean_up EXIT
@@ -34,7 +39,7 @@ for file in "${HASHCAT_BIN}" "${WORDLIST}" "${PREVIOUSLY_CRACKED_WORDLIST}"; do
 done
 
 function run_hashcat() {
-    "${HASHCAT_BIN}" --potfile-path "${TEMP_POTFILE}" -m "${TYPE}" -w 4 -O "${@}"
+    "${HASHCAT_BIN}" --potfile-path "${TEMP_POTFILE}" -m "${TYPE}" -w 4 --bitmap-max 26 --outfile-format=2 --outfile-autohex-disable --outfile "${TEMP_OUTFILE}" -O "${@}"
 
     HASHCAT_STATUS=$?
     if [ $HASHCAT_STATUS -lt 0 ]; then
@@ -59,6 +64,6 @@ run_hashcat -a 0 --loopback -r "${RULES}/OneRuleToRuleThemStill.rule" "${HASHFIL
 run_hashcat -a 3 -1 '?l?d?u!"£$%^&*()_+@#' "${HASHFILE}" ?1?1?1?1?1?1?1?1
 
 # Check up to 12 characters - ALL - last ditch effort
-# run_hashcat -a 3 "${HASHFILE}" ?a?a?a?a?a?a?a?a?a?a?a?a
+run_hashcat -a 3 -i "${HASHFILE}" ?a?a?a?a?a?a?a?a?a?a?a?a
 
 clean_up
